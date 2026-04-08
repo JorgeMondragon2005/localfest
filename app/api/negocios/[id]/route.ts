@@ -1,6 +1,12 @@
 import { supabase } from '@/lib/supabase'
 import { NextRequest, NextResponse } from 'next/server'
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -11,8 +17,8 @@ export async function GET(
     .eq('id', params.id)
     .single()
 
-  if (error) return NextResponse.json({ error }, { status: 404 })
-  return NextResponse.json(data)
+  if (error) return new NextResponse(JSON.stringify({ error }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  return new NextResponse(JSON.stringify(data), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 }
 
 export async function PATCH(
@@ -28,6 +34,10 @@ export async function PATCH(
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error }, { status: 500 })
-  return NextResponse.json(data)
+  if (error) return new NextResponse(JSON.stringify({ error }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  return new NextResponse(JSON.stringify(data), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: corsHeaders })
 }

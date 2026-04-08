@@ -4,6 +4,12 @@ import { supabase } from '@/lib/supabase'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+}
+
 export async function POST(req: NextRequest) {
   const { messages, negocioId } = await req.json()
 
@@ -31,7 +37,12 @@ export async function POST(req: NextRequest) {
     ]
   })
 
-  return NextResponse.json({
-    message: response.choices[0].message.content
+  return new NextResponse(JSON.stringify({ message: response.choices[0].message.content }), {
+    status: 200,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: corsHeaders })
 }
