@@ -16,18 +16,37 @@ interface ChatBotProps {
 }
 
 export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal, telefono }: ChatBotProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
+  const defaultMessage: Message = {
       role: 'assistant',
       content: isGlobal 
         ? "¡Hola! Soy tu Guía LocalFest. ¿Qué te gustaría probar hoy? Dímelo y te encuentro el mejor negocio. / What are you looking for today?" 
         : `Hi! I'm the assistant for ${negocioNombre || 'this business'}. How can I help you today?`
-    }
-  ])
+  };
+
+  const [messages, setMessages] = useState<Message[]>([defaultMessage])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [reservacionPendiente, setReservacionPendiente] = useState<string | null>(null)
   const [lang, setLang] = useState<'ES' | 'EN'>('EN')
+
+  // Cargar estado guardado al montar
+  useEffect(() => {
+    const key = `lf_chat_${negocioId || 'global'}`
+    const saved = localStorage.getItem(key)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (parsed.messages?.length) setMessages(parsed.messages)
+        if (parsed.reservacionPendiente) setReservacionPendiente(parsed.reservacionPendiente)
+      } catch (e) {}
+    }
+  }, [negocioId])
+
+  // Guardar estado cada que cambie
+  useEffect(() => {
+    const key = `lf_chat_${negocioId || 'global'}`
+    localStorage.setItem(key, JSON.stringify({ messages, reservacionPendiente }))
+  }, [messages, reservacionPendiente, negocioId])
   
   const cat = isGlobal ? 'global' : (categoria?.toLowerCase() || 'servicios');
   const catFilters = isGlobal ? ['Dónde comer ahorita', 'Eventos de noche', 'Quiero artesanías'] :
@@ -144,7 +163,7 @@ export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal,
   }
 
   return (
-    <div className="flex flex-col w-full max-w-md mx-auto h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-gray-50 shadow-lg font-sans">
+    <div className="flex flex-col w-full max-w-md mx-auto h-full border-none overflow-hidden bg-gray-50 font-sans">
       
       {/* HEADER -> Se esconde u oculta en Global si pasas isGlobal, pero el UI general lo controla */}
       {!isGlobal && (
