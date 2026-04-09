@@ -39,16 +39,25 @@ export async function POST(req: NextRequest) {
     const body = originalBody.toUpperCase();
     const senderDigits = from.replace(/\D/g, '').match(/\d{10}$/)?.[0] || from.replace(/\D/g, '');
 
-    // 2. BUSCAR NEGOCIO
-    const { data: negocio, error: dbError } = await supabase
+    // 2. BUSCAR NEGOCIO (Harden: Evitar matches vacíos y priorizar precisión)
+    if (!senderDigits || senderDigits.length < 8) {
+       return twimlResponse(`⚠️ Número mal formado (${from}).`);
+    }
+
+    const { data: negocios, error: dbError } = await supabase
       .from('negocios')
       .select('*')
-      .or(`whatsapp.ilike.%${senderDigits}%,telefono.ilike.%${senderDigits}%`)
-      .single()
+      .or(`whatsapp.ilike.%${senderDigits},telefono.ilike.%${senderDigits},whatsapp.eq.${senderDigits},telefono.eq.${senderDigits}`)
+      .limit(1)
+
+    const negocio = negocios?.[0]
+
+    // DEBUG INFO para el usuario
+    const debugTag = `\n\n_Ref: ${from.split(':')[1] || from} | IDs: ${senderDigits}_`;
 
     if (dbError || !negocio) {
-       console.error("Negocio not found or error:", dbError);
-       return twimlResponse(`❌ *Error de Identificación*\n\nNúmero: ${from}\nDígitos: ${senderDigits}\nNo estás registrado. Revisa Supabase.`);
+       console.error("Match error:", dbError);
+       return twimlResponse(`❌ *No reconocido*\n\nEl sistema vio el número: ${senderDigits}.\nRevisa que en Supabase el WhatsApp termine exactamente en esos números.${debugTag}`);
     }
 
     // --- COMANDOS ---
