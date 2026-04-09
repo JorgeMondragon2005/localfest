@@ -10,7 +10,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 }
 
+// Rate limiter básico en memoria (max 15 request por minuto)
+const IP_LIMITS = new Map<string, { count: number; resetAt: number }>();
+
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') || 'unknown';
+  const limit = IP_LIMITS.get(ip);
+  if (limit && limit.resetAt > Date.now() && limit.count >= 15) {
+    return new NextResponse(JSON.stringify({ message: 'Demasiados mensajes. Por favor espera 60 segundos.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+  if (limit && limit.resetAt < Date.now()) {
+    IP_LIMITS.set(ip, { count: 1, resetAt: Date.now() + 60000 });
+  } else {
+    IP_LIMITS.set(ip, { count: (limit?.count || 0) + 1, resetAt: limit?.resetAt || Date.now() + 60000 });
+  }
+
   const { messages, negocioId } = await req.json()
 
   let systemPrompt = `Eres un asistente de LocalFest, plataforma oficial de negocios locales verificados por Ola México para el Mundial FIFA 2026 en México.
