@@ -126,8 +126,8 @@ export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal,
         setMessages(prev => [...prev, {
           role: 'assistant',
           content: lang === 'ES'
-            ? '🎉 ¡Mensaje de WhatsApp entregado exitosamente al negocio!'
-            : '🎉 WhatsApp message delivered successfully!'
+            ? '✅ ¡Tu solicitud ya fue enviada directamente al WhatsApp del local! Te confirmarán pronto. ¿Te puedo ayudar resolviendo alguna otra duda mientras tanto?'
+            : '✅ Your request has been sent directly to the local\'s WhatsApp! They will confirm shortly. Can I help you with anything else in the meantime?'
         }])
       }, 3000)
 

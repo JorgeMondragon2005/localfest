@@ -1,6 +1,9 @@
 import twilio from 'twilio'
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import OpenAI from 'openai'
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -33,21 +36,51 @@ export async function POST(req: NextRequest) {
 
   if (!negocio) return NextResponse.json({ error: 'Negocio no encontrado' }, { status: 404 })
 
+  // 1.5. Traducir el mensaje del turista al ESPAÑOL para el dueño del local
+  let mensajeTraducido = mensaje;
+  try {
+    const translation = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'Eres un sistema de traducción para dueños de negocios locales en México. Traduce y resume la siguiente solicitud de reservación/pedido al ESPAÑOL de forma amable, clara y directa. Solo responde con la traducción formateada, sin comillas ni intros.' },
+        { role: 'user', content: mensaje }
+      ],
+      max_tokens: 150,
+      temperature: 0.3
+    });
+    mensajeTraducido = translation.choices[0].message.content || mensaje;
+  } catch (err) {
+    console.error("Error traduciendo el mensaje:", err);
+  }
+
   // 2. Registrar en Base de Datos (Reservaciones) antes de enviar WS
   await supabase.from('reservaciones').insert({
     negocio_id: negocio.id,
-    cliente_nombre: 'Turista (Desde Chat AI)',
-    fecha_hora: mensaje, // Guardamos el resumen formateado por GPT
+    cliente_nombre: 'Turista (Plataforma)',
+    fecha_hora: mensajeTraducido, 
     estatus: 'pendiente'
   });
 
   // 3. Enviar SMS/WhatsApp vía Twilio
   try {
-    const message = await client.messages.create({
-      from: process.env.TWILIO_WHATSAPP_FROM!,
-      to: `whatsapp:+52${negocio.whatsapp}`,
-      body: `🔔 Nueva solicitud OlaMX:\n${mensaje}\n\nResponde SÍ para confirmar o NO para rechazar.`
-    })
+    let message;
+    const cleanNum = negocio.whatsapp.replace(/\D/g, '');
+    
+    // Hackathon trick: En México el Sandbox de Twilio a veces fuerza el +521 interno
+    try {
+      message = await client.messages.create({
+        from: process.env.TWILIO_WHATSAPP_FROM!,
+        to: `whatsapp:+521${cleanNum}`,
+        body: `🔔 Nueva solicitud LocalFest:\n${mensajeTraducido}\n\nResponde SÍ para confirmar o NO para rechazar.`
+      })
+    } catch (fallbackErr) {
+      message = await client.messages.create({
+        from: process.env.TWILIO_WHATSAPP_FROM!,
+        to: `whatsapp:+52${cleanNum}`,
+        body: `🔔 Nueva solicitud LocalFest:\n${mensajeTraducido}\n\nResponde SÍ para confirmar o NO para rechazar.`
+      })
+    }
+
     console.log("TWILIO EXITO:", message.sid)
     return NextResponse.json({ ok: true, sid: message.sid })
   } catch (error: any) {
