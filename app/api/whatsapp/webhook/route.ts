@@ -19,101 +19,80 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData()
-    const originalBody = (formData.get('Body') as string)?.trim() ?? ''
-    const body = originalBody.toUpperCase()
-    const from = (formData.get('From') as string) ?? ''
+    let originalBody = '';
+    let from = '';
 
-    // 1. Extraer los 10 dígitos del que envía
-    const senderDigits = from.replace(/\D/g, '').match(/\d{10}$/)?.[0] || from.replace(/\D/g, '')
+    // PARSER BULLETPROOF: Intentar formData, si falla intentar text/params
+    try {
+      const formData = await req.formData();
+      originalBody = (formData.get('Body') as string)?.trim() ?? '';
+      from = (formData.get('From') as string) ?? '';
+    } catch (e) {
+      const text = await req.text();
+      const params = new URLSearchParams(text);
+      originalBody = params.get('Body')?.trim() ?? '';
+      from = params.get('From') ?? '';
+    }
 
-    // 2. Buscar negocio (Buscamos que los dígitos existan dentro del campo whatsapp o telefono)
-    // Usamos una búsqueda más agresiva: quitamos todo lo que no sea número en la BD también (opcional pero complejo en or)
-    // Por ahora, ilike con % alrededor de los dígitos es lo más seguro.
+    if (!from) return twimlResponse('⚠️ No se detectó número de origen.');
+
+    const body = originalBody.toUpperCase();
+    const senderDigits = from.replace(/\D/g, '').match(/\d{10}$/)?.[0] || from.replace(/\D/g, '');
+
+    // 2. BUSCAR NEGOCIO
     const { data: negocio, error: dbError } = await supabase
       .from('negocios')
       .select('*')
       .or(`whatsapp.ilike.%${senderDigits}%,telefono.ilike.%${senderDigits}%`)
       .single()
 
-    if (dbError) console.error("Database error:", dbError);
-
-    if (!negocio) {
-      return twimlResponse(
-        `❌ *Error de Identificación*\n\n` +
-        `No reconozco el número: *${from}*\n\n` +
-        `Dígitos detectados: ${senderDigits}\n\n` +
-        `Asegúrate de que este número esté guardado EXACTAMENTE así (o que contenga estos 10 dígitos) en el panel de Supabase.`
-      );
+    if (dbError || !negocio) {
+       console.error("Negocio not found or error:", dbError);
+       return twimlResponse(`❌ *Error de Identificación*\n\nNúmero: ${from}\nDígitos: ${senderDigits}\nNo estás registrado. Revisa Supabase.`);
     }
 
-    // --- COMANDOS CONOCIDOS ---
+    // --- COMANDOS ---
     if (body === 'SI' || body === 'SÍ') {
       await supabase.from('negocios').update({ disponible: true }).eq('id', negocio.id);
-      const { data: reservas } = await supabase.from('reservaciones').select('*').eq('negocio_id', negocio.id).eq('estatus', 'pendiente').order('created_at', { ascending: false }).limit(1);
-      if (reservas?.length) {
-          await supabase.from('reservaciones').update({ estatus: 'confirmada' }).eq('id', reservas[0].id);
-      }
-      return twimlResponse('✅ Reservación CONFIRMADA. ¡Prepara todo!');
+      const { data: r } = await supabase.from('reservaciones').select('id').eq('negocio_id', negocio.id).eq('estatus', 'pendiente').order('created_at', { ascending: false }).limit(1).single();
+      if (r) await supabase.from('reservaciones').update({ estatus: 'confirmada' }).eq('id', r.id);
+      return twimlResponse('✅ Reservación CONFIRMADA.');
     }
 
     if (body === 'NO') {
-      const { data: reservas } = await supabase.from('reservaciones').select('*').eq('negocio_id', negocio.id).eq('estatus', 'pendiente').order('created_at', { ascending: false }).limit(1);
-      if (reservas?.length) {
-          await supabase.from('reservaciones').update({ estatus: 'rechazada' }).eq('id', reservas[0].id);
-      }
-      return twimlResponse('❌ Reservación RECHAZADA. El cliente ya fue avisado.');
+      const { data: r } = await supabase.from('reservaciones').select('id').eq('negocio_id', negocio.id).eq('estatus', 'pendiente').order('created_at', { ascending: false }).limit(1).single();
+      if (r) await supabase.from('reservaciones').update({ estatus: 'rechazada' }).eq('id', r.id);
+      return twimlResponse('❌ Reservación RECHAZADA.');
     }
 
-    if (body === 'STATS' || body === 'ESTADÍSTICAS') {
-      const { count: pendientes } = await supabase.from('reservaciones').select('*', { count: 'exact', head: true }).eq('negocio_id', negocio.id).eq('estatus', 'pendiente');
-      const { count: confirmadas } = await supabase.from('reservaciones').select('*', { count: 'exact', head: true }).eq('negocio_id', negocio.id).eq('estatus', 'confirmada');
-
-      return twimlResponse(
-        `📊 *Status: ${negocio.nombre}*\n\n` +
-        `⏳ Reservas por confirmar: ${pendientes || 0}\n` +
-        `✅ Ventas hoy: ${confirmadas || 0}\n` +
-        `⭐ Reputación: ${negocio.calificacion}/5\n\n` +
-        `Estado: ${negocio.disponible ? '🟢 ABIERTO' : '🔴 CERRADO'}`
-      );
+    if (body === 'STATS' || body === 'ESTADÍSTICAS' || body === 'ESTADISTICAS') {
+      const { count: p } = await supabase.from('reservaciones').select('*', { count: 'exact', head: true }).eq('negocio_id', negocio.id).eq('estatus', 'pendiente');
+      const { count: c } = await supabase.from('reservaciones').select('*', { count: 'exact', head: true }).eq('negocio_id', negocio.id).eq('estatus', 'confirmada');
+      return twimlResponse(`📊 *${negocio.nombre}*\n\n⏳ Pendientes: ${p||0}\n✅ Ventas: ${c||0}\n⭐ Calif: ${negocio.calificacion}/5\n\nStatus: ${negocio.disponible?'🟢':'🔴'}`);
     }
 
     if (body === 'ABRIR') {
       await supabase.from('negocios').update({ disponible: true }).eq('id', negocio.id);
-      return twimlResponse(`✅ *${negocio.nombre}* está ahora EN VIVO.`);
+      return twimlResponse(`✅ *${negocio.nombre}* está ahora ABIERTO.`);
     }
 
     if (body === 'CERRAR') {
       await supabase.from('negocios').update({ disponible: false }).eq('id', negocio.id);
-      return twimlResponse(`🔴 *${negocio.nombre}* está ahora FUERA DE LÍNEA.`);
+      return twimlResponse(`🔴 *${negocio.nombre}* está ahora CERRADO.`);
     }
 
     if (body === 'AYUDA' || body === 'HELP' || body === 'MENU') {
-      return twimlResponse(
-        `🤖 *Asistente Host LocalFest*\n\n` +
-        `• *STATS*: Ver reservas y ventas\n` +
-        `• *ABRIR/CERRAR*: Cambiar tu estado\n` +
-        `• *Cualquier otro texto*: Se publicará como "Mensaje Flash" en tu perfil público.`
-      );
+      return twimlResponse('🤖 Comandos: STATS, ABRIR, CERRAR. Cualquier otro texto actualiza tu Mensaje Flash.');
     }
 
-    // FALLBACK: ¿Es un mensaje flash o un error?
-    // Si el mensaje es muy corto (ej: una letra al azar), asumimos error. 
-    // Si es una frase, asumimos Flash.
-    if (originalBody.length < 3) {
-      return twimlResponse('🤔 No entendí ese comando. Escribe *AYUDA* para ver la lista.');
-    }
+    if (originalBody.length < 3) return twimlResponse('🤔 Comando no reconocido. Escribe AYUDA.');
 
-    await supabase.from('negocios').update({ 
-      mensaje_flash: originalBody, 
-      flash_updated_at: new Date().toISOString() 
-    }).eq('id', negocio.id);
-
-    return twimlResponse(`🚀 *Flash Publicado:*\n\n"${originalBody}"\n\n_Tus clientes ya pueden ver esto en la página principal._`);
+    await supabase.from('negocios').update({ mensaje_flash: originalBody, flash_updated_at: new Date().toISOString() }).eq('id', negocio.id);
+    return twimlResponse(`🚀 Flash Publicado: "${originalBody}"`);
 
   } catch (error: any) {
-    console.error('CRITICAL WEBHOOK ERROR:', error);
-    return twimlResponse('💀 Error técnico: ' + error.message);
+    console.error('WEBHOOK CRASH:', error);
+    return twimlResponse('💀 Error: ' + error.message);
   }
 }
 
