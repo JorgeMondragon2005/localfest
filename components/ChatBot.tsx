@@ -45,7 +45,7 @@ export default function ChatBot({ negocioId, negocioNombre }: ChatBotProps) {
     setLoading(true)
 
     try {
-      const response = await fetch('https://localfest.vercel.app/api/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: newMessages, negocioId })
@@ -88,7 +88,7 @@ export default function ChatBot({ negocioId, negocioNombre }: ChatBotProps) {
 
     // 1. Llamada real a WhatsApp enviando el mensaje guardado en pendiente
     try {
-      await fetch('https://localfest.vercel.app/api/whatsapp', {
+      await fetch('/api/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ negocioId, mensaje: reservacionPendiente })
