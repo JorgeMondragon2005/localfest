@@ -9,16 +9,9 @@ export async function POST(req: NextRequest) {
     const params = new URLSearchParams(textData);
     
     // Twilio envía 'Body' y 'From' (ej: whatsapp:+521234567890)
-    const body = params.get('Body')?.trim().toUpperCase() || '';
+    const originalBody = params.get('Body')?.trim() || '';
+    const body = originalBody.toUpperCase();
     const from = params.get('From') || '';
-
-    // Si el mensaje no es una confirmación/rechazo clara, no hacemos nada
-    if (body !== 'SÍ' && body !== 'NO' && body !== 'SI') {
-      return new NextResponse('<Response></Response>', {
-        status: 200,
-        headers: { 'Content-Type': 'text/xml' },
-      });
-    }
 
     // Extraer celular
     const celularNegocio = from.replace('whatsapp:+52', '').replace('whatsapp:', '');
@@ -30,19 +23,35 @@ export async function POST(req: NextRequest) {
       .eq('whatsapp', celularNegocio)
       .single();
 
-    if (negocio) {
-      // Buscar la reservación pendiente más reciente de este negocio para actualizar
-      const { data: reservacion } = await supabase
-        .from('reservaciones')
-        .select('*')
-        .eq('negocio_id', negocio.id)
-        .eq('estatus', 'pendiente')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+    if (!negocio) {
+      return new NextResponse('<Response></Response>', { status: 200, headers: { 'Content-Type': 'text/xml' } });
+    }
 
-      if (reservacion) {
-        const nuevoEstatus = (body === 'SÍ' || body === 'SI') ? 'confirmada' : 'rechazada';
+    // Pivot 1: TABLERO VIVO. Si el mensaje NO es una confirmación de reserva (SÍ/NO), es un MENSAJE FLASH
+    if (body !== 'SÍ' && body !== 'NO' && body !== 'SI') {
+      await supabase
+        .from('negocios')
+        .update({ 
+          mensaje_flash: originalBody, 
+          flash_updated_at: new Date().toISOString() 
+        })
+        .eq('id', negocio.id);
+        
+      return new NextResponse('<Response></Response>', { status: 200, headers: { 'Content-Type': 'text/xml' } });
+    }
+
+    // Pivot 2: Es una confirmación de reserva (SÍ/NO). Buscar la última reserva pendiente
+    const { data: reservacion } = await supabase
+      .from('reservaciones')
+      .select('*')
+      .eq('negocio_id', negocio.id)
+      .eq('estatus', 'pendiente')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (reservacion) {
+      const nuevoEstatus = (body === 'SÍ' || body === 'SI') ? 'confirmada' : 'rechazada';
 
         await supabase
           .from('reservaciones')
@@ -52,7 +61,6 @@ export async function POST(req: NextRequest) {
         // Opcional: Aquí podrías enviar un WhatsApp o SMS de vuelta al TURISTA 
         // indicando que su reservación fue confirmada o rechazada.
       }
-    }
 
     // Twilio siempre espera XML de regreso (TwiML)
     return new NextResponse('<Response></Response>', {

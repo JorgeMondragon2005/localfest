@@ -15,6 +15,8 @@ interface Negocio {
   disponible: boolean;
   calificacion: number;
   direccion: string;
+  mensaje_flash?: string;
+  flash_updated_at?: string;
 }
 
 const CATEGORIAS: { key: Categoria; label: string }[] = [
@@ -166,6 +168,17 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Pasaporte de Impacto (Gamificación Prototype) */}
+      <div style={{ margin: "10px 16px", background: "#E1F5EE", border: "1px solid #1D9E75", padding: "12px", borderRadius: "12px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); alert("Modo Scanner Activado. Escaneando QR Local..."); }}>
+        <div>
+          <div style={{fontSize: 14, fontWeight: 700, color: "#0F6E56"}}>Pasaporte Aliado 🌟</div>
+          <div style={{fontSize: 11, color: "#1D9E75", marginTop: 2}}>0/3 sellos para tu premio</div>
+        </div>
+        <div style={{background: "#0F6E56", color: "white", padding: "6px 14px", borderRadius: "20px", fontSize: 12, fontWeight: "bold", border: "none"}}>
+          📸 Escanear
+        </div>
+      </div>
+
       {/* Contador */}
       <div style={{ padding: "10px 16px 4px", fontSize: 12, color: "#888780" }}>
         {cargando ? "Buscando negocios cerca de ti..." : `${negociosFiltrados.length} negocios verificados cerca de ti`}
@@ -202,7 +215,7 @@ export default function Home() {
               return (
                 <div
                   key={negocio.id}
-                  onClick={() => router.push(`/negocio/${negocio.id}`)}
+                  onClick={() => router.push(`/negocios/${negocio.id}`)}
                   style={{
                     background: "white",
                     borderRadius: 12,
@@ -235,10 +248,16 @@ export default function Home() {
                     <div style={{ fontSize: 13, fontWeight: 500, color: "#2C2C2A" }}>
                       {negocio.nombre}
                     </div>
-                    <div style={{ fontSize: 11, color: "#888780", marginTop: 2 }}>
-                      {negocio.categoria.charAt(0).toUpperCase() + negocio.categoria.slice(1)}
-                      {negocio.direccion ? ` · ${negocio.direccion}` : ""}
-                    </div>
+                    {negocio.mensaje_flash ? (
+                      <div style={{ fontSize: 13, color: "#0F6E56", fontWeight: 700, marginTop: 4, background: "#E1F5EE", padding: "4px 8px", borderRadius: 6, display: "inline-block" }}>
+                        ⚡ {negocio.mensaje_flash}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 11, color: "#888780", marginTop: 2 }}>
+                        {negocio.categoria.charAt(0).toUpperCase() + negocio.categoria.slice(1)}
+                        {negocio.direccion ? ` · ${negocio.direccion}` : ""}
+                      </div>
+                    )}
                     <div style={{
                       display: "flex",
                       alignItems: "center",

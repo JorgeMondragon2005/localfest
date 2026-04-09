@@ -200,6 +200,13 @@ export default function ChatBot({ negocioId, negocioNombre }: ChatBotProps) {
         <div ref={messagesEndRef} className="h-1" />
       </div>
 
+      {/* FILTROS DE CULTURA (Cero fricción) */}
+      <div className="px-4 pb-3 bg-white shrink-0 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide text-xs">
+        <button onClick={() => setInput('¿Es muy picante para un extranjero?')} className="bg-gray-50 hover:bg-gray-100 text-[#0F6E56] font-medium px-4 py-2 rounded-full transition border border-gray-200">🌮 Sin picante?</button>
+        <button onClick={() => setInput('¿Aceptan tarjeta extranjera?')} className="bg-gray-50 hover:bg-gray-100 text-[#0F6E56] font-medium px-4 py-2 rounded-full transition border border-gray-200">💳 Tarjeta Extranjera?</button>
+        <button onClick={() => setInput('Tengo alergia a semillas, ¿qué puedo comer?')} className="bg-gray-50 hover:bg-gray-100 text-[#0F6E56] font-medium px-4 py-2 rounded-full transition border border-gray-200">🥜 Alergias</button>
+      </div>
+
       {/* INPUT */}
       <div className="p-4 bg-white border-t border-gray-100 shrink-0">
         <form onSubmit={handleSendMessage} className="flex space-x-2">
