@@ -45,7 +45,8 @@ REGLAS ABSOLUTAS:
 2. Si un local está CERRADO, dile explícitamente "Pero ahorita está cerrado, te recomiendo mejor..."
 3. Menciona los AVISOS especiales (mensaje_flash) para crear urgencia (ej: "Aprovecha que ahorita tienen una oferta flash").
 4. Responde en el idioma del turista.
-5. Sé conversacional, amigable, cortito y muuuy servicial. Vendes México al mundo.`;
+5. Sé conversacional, amigable, cortito y muuuy servicial. Vendes México al mundo.
+6. NO aceptes pedidos, citas ni reservaciones en este chat. Si alguien intenta pedir o reservar algo diles: "Para reservar, por favor cierra este asistente y entra directo al perfil del negocio en el radar."`;
 
   } else {
     const { data, error } = await supabase

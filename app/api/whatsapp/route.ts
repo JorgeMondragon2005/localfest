@@ -42,11 +42,16 @@ export async function POST(req: NextRequest) {
   });
 
   // 3. Enviar SMS/WhatsApp vía Twilio
-  await client.messages.create({
-    from: process.env.TWILIO_WHATSAPP_FROM!,
-    to: `whatsapp:+52${negocio.whatsapp}`,
-    body: `🔔 Nueva solicitud OlaMX:\n${mensaje}\n\nResponde SÍ para confirmar o NO para rechazar.`
-  })
-
-  return NextResponse.json({ ok: true })
+  try {
+    const message = await client.messages.create({
+      from: process.env.TWILIO_WHATSAPP_FROM!,
+      to: `whatsapp:+52${negocio.whatsapp}`,
+      body: `🔔 Nueva solicitud OlaMX:\n${mensaje}\n\nResponde SÍ para confirmar o NO para rechazar.`
+    })
+    console.log("TWILIO EXITO:", message.sid)
+    return NextResponse.json({ ok: true, sid: message.sid })
+  } catch (error: any) {
+    console.error("TWILIO ERROR CRÍTICO:", error)
+    return NextResponse.json({ error: error.message || 'Error desconocido en Twilio' }, { status: 500 })
+  }
 }

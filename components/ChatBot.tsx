@@ -98,36 +98,46 @@ export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal 
   const handleConfirmar = async () => {
     if (!reservacionPendiente) return
 
-    // 1. Llamada real a WhatsApp enviando el mensaje guardado en pendiente
+    // 1. Llamada real a WhatsApp
     try {
-      await fetch('/api/whatsapp', {
+      const res = await fetch('/api/whatsapp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ negocioId, mensaje: reservacionPendiente })
       })
-    } catch (err) {
-      console.error('WhatsApp notification API failed', err)
-      // Como dice el requerimiento: la UI no se bloquea y fingimos éxito por la demo
-    }
 
-    // 2. Mensaje de espera inmediato
-    setMessages(prev => [...prev, {
-      role: 'assistant',
-      content: lang === 'ES' 
-        ? '⏳ Enviando tu solicitud al restaurante...' 
-        : '⏳ Sending your request to the restaurant...'
-    }])
-    setReservacionPendiente(null)
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Server error');
+      }
 
-    // 3. Confirmación simulada después de 3 segundos
-    setTimeout(() => {
+      // 2. Mensaje de espera inmediato
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: lang === 'ES'
-          ? '🎉 ¡Confirmado! Tu mesa está lista. Te esperan — tienes 20 minutos para llegar.'
-          : '🎉 Confirmed! Your table is ready. They\'ll be expecting you — you have 20 minutes to arrive.'
+        content: lang === 'ES' 
+          ? '⏳ Enviando tu solicitud al restaurante vía WhatsApp oficial...' 
+          : '⏳ Sending your request via official WhatsApp...'
       }])
-    }, 3000)
+      setReservacionPendiente(null)
+
+      // 3. Confirmación (Sólo se llega aquí si Twilio no tiró Error 500)
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: lang === 'ES'
+            ? '🎉 ¡Mensaje de WhatsApp entregado exitosamente al negocio!'
+            : '🎉 WhatsApp message delivered successfully!'
+        }])
+      }, 3000)
+
+    } catch (err: any) {
+      console.error('WhatsApp notification API failed', err)
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `❌ Error de Twilio API: ${err.message}. (Verifica que el número sea válido en versión Trial).`
+      }])
+      setReservacionPendiente(null)
+    }
   }
 
   return (

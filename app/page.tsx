@@ -6,168 +6,67 @@ export default function LandingPage() {
   const router = useRouter();
 
   return (
-    <div style={{
-      maxWidth: 430,
-      margin: "0 auto",
-      minHeight: "100dvh",
-      background: "#0F6E56",
-      fontFamily: "system-ui, sans-serif",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "48px 28px",
-      textAlign: "center",
-      position: "relative",
-      overflow: "hidden",
-    }}>
+    <div className="relative min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-8 overflow-hidden font-sans text-center">
+      
+      {/* Elementos decorativos (Papel Picado vibe o círculos vibrantes) */}
+      <div className="absolute -top-32 -left-32 w-80 h-80 bg-[#E4007C]/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-[#006847]/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#F57814]/5 via-transparent to-transparent pointer-events-none"></div>
 
-      {/* Círculos decorativos — solo abajo, lejos del logo */}
-      <div style={{
-        position: "absolute",
-        bottom: -120,
-        right: -120,
-        width: 320,
-        height: 320,
-        borderRadius: "50%",
-        background: "rgba(255,255,255,0.05)",
-        pointerEvents: "none",
-      }} />
-      <div style={{
-        position: "absolute",
-        bottom: -60,
-        left: -100,
-        width: 250,
-        height: 250,
-        borderRadius: "50%",
-        background: "rgba(255,255,255,0.05)",
-        pointerEvents: "none",
-      }} />
+      {/* Logo */}
+      <div className="relative z-10 mb-6 drop-shadow-xl animate-fade-in-up">
+        {/* Usando imagen real del logo o fallback estético en texto si no carga la img */}
+        <img
+          src="/LogoLF.png"
+          alt="LocalFest"
+          className="w-48 h-48 object-contain mx-auto mix-blend-multiply"
+          onError={(e) => {
+            // Fallback si la imagen no existe
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      </div>
 
-      {/* Logo centrado */}
-      <img
-  src="/LogoLF.png"
-  alt="LocalFest"
-  style={{
-    width: 180,
-    height: 180,
-    objectFit: "contain",
-    marginBottom: 20,
-    position: "relative",
-    zIndex: 2,
-    mixBlendMode: "screen",
-  }}
-/>
-
-      {/* Título */}
-      <h1 style={{
-        fontSize: 38,
-        fontWeight: 800,
-        color: "white",
-        margin: "0 0 10px",
-        letterSpacing: -1,
-        position: "relative",
-        zIndex: 2,
-      }}>
-        LocalFest
+      {/* Título Principal */}
+      <h1 className="relative z-10 text-5xl font-black text-[#2D2A26] tracking-tighter mb-4 leading-tight">
+        <span className="text-[#006847]">Local</span>
+        <span className="text-[#F57814]">Fest</span>
       </h1>
 
       {/* Descripción */}
-      <p style={{
-        fontSize: 15,
-        color: "rgba(255,255,255,0.75)",
-        margin: "0 0 12px",
-        lineHeight: 1.6,
-        maxWidth: 260,
-        position: "relative",
-        zIndex: 2,
-      }}>
-        Descubre negocios locales auténticos cerca de ti
+      <p className="relative z-10 text-lg text-gray-600 font-semibold mb-10 max-w-xs leading-relaxed">
+        Reserva y descubre los rincones más auténticos de México.
       </p>
 
-      {/* Sello */}
-      <div style={{
-        background: "rgba(255,255,255,0.12)",
-        border: "1px solid rgba(255,255,255,0.2)",
-        borderRadius: 20,
-        padding: "5px 16px",
-        fontSize: 12,
-        color: "rgba(255,255,255,0.9)",
-        marginBottom: 48,
-        fontWeight: 500,
-        position: "relative",
-        zIndex: 2,
-      }}>
-        ✓ Verificado por Ola México
+      {/* Sello de Confianza */}
+      <div className="relative z-10 bg-white/80 backdrop-blur-md border border-gray-200 px-5 py-2.5 rounded-full shadow-sm mb-12 flex items-center justify-center gap-2">
+        <svg className="w-5 h-5 text-[#006847]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+        <span className="text-sm font-black uppercase tracking-widest text-[#006847]">Verificado por Ola</span>
       </div>
 
-      {/* Botón principal */}
+      {/* Botón Principal (Hero Action) */}
       <button
         onClick={() => router.push("/catalogo")}
-        style={{
-          width: "100%",
-          maxWidth: 320,
-          padding: "18px 24px",
-          background: "white",
-          color: "#0F6E56",
-          border: "none",
-          borderRadius: 16,
-          fontSize: 16,
-          fontWeight: 700,
-          cursor: "pointer",
-          marginBottom: 14,
-          transition: "transform 0.1s ease",
-          position: "relative",
-          zIndex: 2,
-        }}
-        onMouseDown={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)";
-        }}
-        onMouseUp={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-        }}
+        className="relative z-10 w-full max-w-sm py-5 px-8 bg-gradient-to-r from-[#006847] to-[#0a875e] text-white rounded-3xl text-lg font-black shadow-[0_15px_35px_-5px_rgba(0,104,71,0.4)] hover:shadow-[0_10px_20px_-5px_rgba(0,104,71,0.4)] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-1 group mb-5"
       >
-        Explorar negocios locales
+        <span>Entrar al Radar Festivo</span>
+        <span className="text-xs font-bold text-white/80 font-normal uppercase tracking-wider group-hover:text-white transition-colors">Explorar negocios locales</span>
       </button>
 
-      {/* Botón secundario */}
+      {/* Botón Secundario */}
       <button
         onClick={() => router.push("/negocio/registro")}
-        style={{
-          width: "100%",
-          maxWidth: 320,
-          padding: "16px 24px",
-          background: "transparent",
-          color: "rgba(255,255,255,0.8)",
-          border: "1px solid rgba(255,255,255,0.3)",
-          borderRadius: 16,
-          fontSize: 14,
-          fontWeight: 500,
-          cursor: "pointer",
-          transition: "transform 0.1s ease",
-          position: "relative",
-          zIndex: 2,
-        }}
-        onMouseDown={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)";
-        }}
-        onMouseUp={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)";
-        }}
+        className="relative z-10 w-full max-w-sm py-4 px-8 bg-white text-gray-700 border-2 border-gray-200 rounded-3xl text-sm font-extrabold shadow-sm active:scale-[0.98] hover:bg-gray-50 transition-all flex justify-center items-center gap-2"
       >
-        ¿Tienes un negocio? Regístralo aquí
+        <span>🏪</span> ¿Tienes un negocio? Regístralo
       </button>
 
       {/* Footer */}
-      <p style={{
-        position: "absolute",
-        bottom: 20,
-        fontSize: 11,
-        color: "rgba(255,255,255,0.3)",
-        zIndex: 2,
-      }}>
-        Impulsado por Fundación Coppel · Impact Hub CDMX
-      </p>
+      <div className="absolute bottom-6 w-full text-center px-4">
+        <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">
+          Impulsado por Fundación Coppel · Impact Hub
+        </p>
+      </div>
 
     </div>
   );
