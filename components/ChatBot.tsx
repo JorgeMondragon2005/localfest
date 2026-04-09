@@ -8,16 +8,19 @@ interface Message {
 }
 
 interface ChatBotProps {
-  negocioId: string
-  negocioNombre: string
+  negocioId?: string
+  negocioNombre?: string
   categoria?: string
+  isGlobal?: boolean
 }
 
-export default function ChatBot({ negocioId, negocioNombre, categoria }: ChatBotProps) {
+export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal }: ChatBotProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hi! I'm the assistant for ${negocioNombre}. How can I help you today?`
+      content: isGlobal 
+        ? "¡Hola! Soy tu Guía LocalFest. ¿Qué te gustaría probar hoy? Dímelo y te encuentro el mejor negocio. / What are you looking for today?" 
+        : `Hi! I'm the assistant for ${negocioNombre || 'this business'}. How can I help you today?`
     }
   ])
   const [input, setInput] = useState('')
@@ -25,8 +28,9 @@ export default function ChatBot({ negocioId, negocioNombre, categoria }: ChatBot
   const [reservacionPendiente, setReservacionPendiente] = useState<string | null>(null)
   const [lang, setLang] = useState<'ES' | 'EN'>('EN')
   
-  const cat = categoria?.toLowerCase() || 'servicios';
-  const catFilters = cat === 'restaurante' ? ['🌮 Opciones veganas?', '🥜 Alergias y dieta', '💳 Métodos de pago?'] :
+  const cat = isGlobal ? 'global' : (categoria?.toLowerCase() || 'servicios');
+  const catFilters = isGlobal ? ['🌮 ¿Dónde comer ahorita?', '🎉 ¿Eventos de noche?', '🛍️ Quiero artesanías'] :
+                     cat === 'restaurante' ? ['🌮 Opciones veganas?', '🥜 Alergias y dieta', '💳 Métodos de pago?'] :
                      cat === 'hospedaje' ? ['🛏️ Disponibilidad hoy', '🕒 Check-in / Out?', '💳 Aceptan USD?'] :
                      cat === 'artesanias' ? ['📦 Catálogo de productos', '💸 Mayoreo?', '✈️ Envíos internacionales?'] :
                      cat === 'entretenimiento' ? ['🎟️ Comprar boletos', '🕒 Horarios de hoy', '📍 Ubicación exacta'] :
@@ -56,7 +60,7 @@ export default function ChatBot({ negocioId, negocioNombre, categoria }: ChatBot
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages, negocioId })
+        body: JSON.stringify({ messages: newMessages, negocioId: isGlobal ? null : negocioId })
       })
 
       if (!response.ok) {
@@ -129,34 +133,30 @@ export default function ChatBot({ negocioId, negocioNombre, categoria }: ChatBot
   return (
     <div className="flex flex-col w-full max-w-md mx-auto h-[600px] border border-gray-200 rounded-xl overflow-hidden bg-gray-50 shadow-lg font-sans">
       
-      {/* HEADER */}
-      <div className="bg-[#0F6E56] text-white p-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center space-x-3">
-          <div className="bg-white/20 p-2 rounded-full">
-            {/* Avatar AI (bot icon simples) */}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-              <path d="M12 8V4H8"/>
-              <rect width="16" height="12" x="4" y="8" rx="2"/>
-              <path d="M2 14h2"/>
-              <path d="M20 14h2"/>
-              <path d="M15 13v2"/>
-              <path d="M9 13v2"/>
-            </svg>
+      {/* HEADER -> Se esconde u oculta en Global si pasas isGlobal, pero el UI general lo controla */}
+      {!isGlobal && (
+        <div className="bg-[#006847] text-white p-4 flex items-center justify-between shrink-0">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/20 p-2 rounded-full">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                <path d="M12 8V4H8"/>
+                <rect width="16" height="12" x="4" y="8" rx="2"/>
+                <path d="M2 14h2"/>
+                <path d="M20 14h2"/>
+                <path d="M15 13v2"/>
+                <path d="M9 13v2"/>
+              </svg>
+            </div>
+            <div>
+              <h2 className="font-semibold text-lg leading-tight">{negocioNombre}</h2>
+              <p className="text-xs text-white/80">AI Assistant</p>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-lg leading-tight">{negocioNombre}</h2>
-            <p className="text-xs text-white/80">AI Assistant</p>
-          </div>
+          <button onClick={() => setLang(l => l === 'EN' ? 'ES' : 'EN')} className="bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
+            {lang === 'EN' ? 'EN / es' : 'es / EN'}
+          </button>
         </div>
-        
-        {/* ES/EN Toggle */}
-        <button 
-          onClick={() => setLang(l => l === 'EN' ? 'ES' : 'EN')}
-          className="bg-white/10 hover:bg-white/20 transition-colors px-3 py-1 rounded-full text-sm font-medium"
-        >
-          {lang === 'EN' ? 'EN / es' : 'es / EN'}
-        </button>
-      </div>
+      )}
 
       {/* MENSAJES */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -165,10 +165,10 @@ export default function ChatBot({ negocioId, negocioNombre, categoria }: ChatBot
           return (
             <div key={idx} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
               <div 
-                className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
+                className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm text-[13.5px] font-medium leading-relaxed ${
                   isUser 
-                    ? 'bg-[#1D9E75] text-white rounded-br-none' 
-                    : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'
+                    ? 'bg-[#006847] text-white rounded-br-none shadow-md' 
+                    : 'bg-white border border-gray-100 text-gray-700 rounded-bl-none shadow-sm'
                 }`}
               >
                 {msg.content}

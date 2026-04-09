@@ -181,8 +181,8 @@ export default function PerfilNegocio() {
             {negocio.nombre}
           </span>
           <span style={{
-            fontSize: 9, background: "#1D9E75", color: "#E1F5EE",
-            padding: "2px 7px", borderRadius: 99, fontWeight: 500,
+            fontSize: 9, background: "#006847", color: "#E1F5EE",
+            padding: "2px 7px", borderRadius: 99, fontWeight: 700,
           }}>
             Verif. Ola México
           </span>
@@ -226,7 +226,7 @@ export default function PerfilNegocio() {
             <div style={{ fontSize: 16, fontWeight: 500, color: "var(--color-text-primary)" }}>
               {negocio.nombre}
             </div>
-            <div style={{ fontSize: 11, color: "#1D9E75", marginTop: 3 }}>
+            <div style={{ fontSize: 11, color: "#006847", fontWeight: "bold", marginTop: 3 }}>
               {negocio.categoria} · Verificado por Ola México
             </div>
           </div>
@@ -278,10 +278,11 @@ export default function PerfilNegocio() {
           <button
             onClick={() => setShowChat(true)}
             style={{
-              width: "100%", padding: "11px 0",
-              background: "#1D9E75", color: "#E1F5EE",
-              border: "none", borderRadius: "var(--border-radius-md)",
-              fontSize: 13, fontWeight: 500, cursor: "pointer",
+              width: "100%", padding: "14px 0",
+              background: "linear-gradient(135deg, #006847, #0a875e)", color: "#FFFFFF",
+              border: "none", borderRadius: "24px",
+              fontSize: 14, fontWeight: "bold", cursor: "pointer",
+              boxShadow: "0 8px 20px -5px rgba(0, 104, 71, 0.4)"
             }}
           >
             Reservar o preguntar al asistente

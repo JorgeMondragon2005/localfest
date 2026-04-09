@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #090e17; /* Cyber/Radar dark theme */
-  --foreground: #ffffff;
+  /* Fondo cálido tipo pueblo mágico */
+  --background: #FAF8F5; 
+  --foreground: #2D2A26;
+  
+  /* Colores Bandera y Cultura */
+  --mx-verde: #006847;
+  --mx-rosa: #E4007C;
+  --mx-naranja: #F57814;
 }
 
 @theme inline {
@@ -17,70 +23,47 @@ body {
   overflow-x: hidden;
 }
 
-/* --- ANIMACIONES DE RADAR Y NEON --- */
-@keyframes radar-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Sombras suaves y tarjetas limpias */
+.status-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+.status-card:active {
+  transform: scale(0.98);
 }
 
-@keyframes pulse-ring {
-  0% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 0 0 rgba(29, 158, 117, 0.7); }
-  70% { transform: scale(1); opacity: 0.4; box-shadow: 0 0 0 15px rgba(29, 158, 117, 0); }
-  100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 0 0 rgba(29, 158, 117, 0); }
+/* Indicadores Semáforo */
+.semaforo-verde { background-color: var(--mx-verde); box-shadow: 0 0 12px rgba(0, 104, 71, 0.5); }
+.semaforo-amarillo { background-color: var(--mx-naranja); box-shadow: 0 0 12px rgba(245, 120, 20, 0.5); }
+.semaforo-rojo { background-color: #CE1126; box-shadow: 0 0 12px rgba(206, 17, 38, 0.5); }
+
+/* Botón Gigante (Hero) */
+.btn-hero {
+  background: linear-gradient(135deg, var(--mx-verde), #0a875e);
+  color: white;
+  border-radius: 24px;
+  box-shadow: 0 12px 35px -5px rgba(0, 104, 71, 0.4);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+.btn-hero:active {
+  transform: translateY(4px);
+  box-shadow: 0 6px 20px -5px rgba(0, 104, 71, 0.4);
 }
 
-.radar-bg {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 200vw;
-  height: 200vw;
-  margin-top: -100vw;
-  margin-left: -100vw;
-  background: conic-gradient(from 0deg, transparent 60%, rgba(29, 158, 117, 0.15) 90%, rgba(29, 158, 117, 0.6) 100%);
-  border-radius: 50%;
-  animation: radar-spin 6s linear infinite;
-  pointer-events: none;
-  z-index: 0;
+/* Fab Animado (Floating Chat) */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
-
-.radar-grid {
-  position: fixed;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(29, 158, 117, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(29, 158, 117, 0.05) 1px, transparent 1px);
-  background-size: 50px 50px;
-  z-index: 0;
-  pointer-events: none;
+.fab-chat {
+  background: linear-gradient(135deg, var(--mx-rosa), #ff1a8c);
+  animation: bounce-slow 4s infinite ease-in-out;
+  box-shadow: 0 15px 40px -5px rgba(228, 0, 124, 0.6);
+  transition: transform 0.2s ease;
 }
-
-.glass-card {
-  background: rgba(15, 23, 35, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(29, 158, 117, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
-}
-.glass-card:hover {
-  border-color: rgba(29, 158, 117, 0.5);
-  transform: translateY(-2px);
-}
-
-.neon-text-green {
-  text-shadow: 0 0 10px rgba(29, 158, 117, 0.7), 0 0 20px rgba(29, 158, 117, 0.3);
-}
-
-.neon-text-orange {
-  text-shadow: 0 0 10px rgba(216, 90, 48, 0.7), 0 0 20px rgba(216, 90, 48, 0.3);
-}
-
-.status-indicator {
-  animation: pulse-ring 2s infinite;
-}
-
-.flash-banner {
-  background: linear-gradient(90deg, rgba(216, 90, 48, 0.9), rgba(255, 129, 82, 0.9));
-  box-shadow: 0 4px 15px rgba(216, 90, 48, 0.4);
+.fab-chat:active {
+  transform: scale(0.9);
 }
