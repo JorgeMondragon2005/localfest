@@ -109,8 +109,7 @@ export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal,
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.warn('Hackathon Demo: Twilio sin saldo. Simulando éxito para el video.', errorData);
-        // throw new Error(errorData.error || 'Server error'); // <-- LO COMENTAMOS PARA TU VIDEO
+        throw new Error(errorData.error || 'Server error');
       }
 
       // 2. Mensaje de espera inmediato
