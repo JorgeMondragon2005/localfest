@@ -1,0 +1,5 @@
+﻿eb54de7 feat: landing page y catalogo
+fb7fcb3 Merge branch 'main' into feature/perfil
+3501470 chatbot estricto con contexto real del negocio
+3d02eaf feat: perfil de negocio completo
+7899633 fix: agrego GET y OPTIONS al webhook de whatsapp
