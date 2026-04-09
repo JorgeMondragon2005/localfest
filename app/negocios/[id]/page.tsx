@@ -365,7 +365,7 @@ export default function PerfilNegocio() {
             </div>
             {/* Chatbot */}
             <div style={{ flex: 1, overflow: "hidden" }}>
-              <ChatBot negocioId={negocio.id} negocioNombre={negocio.nombre} />
+              <ChatBot negocioId={negocio.id} negocioNombre={negocio.nombre} categoria={negocio.categoria} />
             </div>
           </div>
         </div>

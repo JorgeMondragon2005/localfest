@@ -10,9 +10,10 @@ interface Message {
 interface ChatBotProps {
   negocioId: string
   negocioNombre: string
+  categoria?: string
 }
 
-export default function ChatBot({ negocioId, negocioNombre }: ChatBotProps) {
+export default function ChatBot({ negocioId, negocioNombre, categoria }: ChatBotProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -23,6 +24,13 @@ export default function ChatBot({ negocioId, negocioNombre }: ChatBotProps) {
   const [loading, setLoading] = useState(false)
   const [reservacionPendiente, setReservacionPendiente] = useState<string | null>(null)
   const [lang, setLang] = useState<'ES' | 'EN'>('EN')
+  
+  const cat = categoria?.toLowerCase() || 'servicios';
+  const catFilters = cat === 'restaurante' ? ['🌮 Opciones veganas?', '🥜 Alergias y dieta', '💳 Métodos de pago?'] :
+                     cat === 'hospedaje' ? ['🛏️ Disponibilidad hoy', '🕒 Check-in / Out?', '💳 Aceptan USD?'] :
+                     cat === 'artesanias' ? ['📦 Catálogo de productos', '💸 Mayoreo?', '✈️ Envíos internacionales?'] :
+                     cat === 'entretenimiento' ? ['🎟️ Comprar boletos', '🕒 Horarios de hoy', '📍 Ubicación exacta'] :
+                     ['📍 ¿Cómo llego?', '💳 Métodos de pago?', '🕒 Horarios de hoy?'];
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -200,11 +208,17 @@ export default function ChatBot({ negocioId, negocioNombre }: ChatBotProps) {
         <div ref={messagesEndRef} className="h-1" />
       </div>
 
-      {/* FILTROS DE CULTURA (Cero fricción) */}
-      <div className="px-4 pb-3 bg-white shrink-0 flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide text-xs">
-        <button onClick={() => setInput('¿Es muy picante para un extranjero?')} className="bg-gray-50 hover:bg-gray-100 text-[#0F6E56] font-medium px-4 py-2 rounded-full transition border border-gray-200">🌮 Sin picante?</button>
-        <button onClick={() => setInput('¿Aceptan tarjeta extranjera?')} className="bg-gray-50 hover:bg-gray-100 text-[#0F6E56] font-medium px-4 py-2 rounded-full transition border border-gray-200">💳 Tarjeta Extranjera?</button>
-        <button onClick={() => setInput('Tengo alergia a semillas, ¿qué puedo comer?')} className="bg-gray-50 hover:bg-gray-100 text-[#0F6E56] font-medium px-4 py-2 rounded-full transition border border-gray-200">🥜 Alergias</button>
+      {/* FILTROS DINAMICOS POR CATEGORIA */}
+      <div className="px-4 pb-3 bg-white auto-scroll shrink-0 flex gap-2 overflow-x-auto whitespace-nowrap text-xs" style={{scrollbarWidth: 'none'}}>
+        {catFilters.map((f, i) => (
+          <button 
+            key={i} 
+            onClick={() => setInput(f)} 
+            className="bg-gray-50 hover:bg-[#1D9E75]/10 text-[#0F6E56] font-semibold px-4 py-2 rounded-full transition border border-[#1D9E75]/20 shadow-sm"
+          >
+            {f}
+          </button>
+        ))}
       </div>
 
       {/* INPUT */}
