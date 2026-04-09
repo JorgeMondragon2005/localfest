@@ -132,13 +132,13 @@ export default function PerfilNegocio() {
             <div className="bg-[#006847] text-white p-5 flex justify-between items-center rounded-t-[32px] shadow-sm z-10">
               <div>
                 <h3 className="font-black text-xl tracking-tight leading-none mb-0.5">{negocio.nombre}</h3>
-                <p className="text-[10px] font-black text-[#E1F5EE] uppercase tracking-widest">Asistente Local</p>
+                <p className="text-[10px] font-black text-[#E1F5EE] uppercase tracking-widest">Asistente LocalFest</p>
               </div>
               <button onClick={() => setShowChat(false)} className="bg-black/20 w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/30 transition text-white font-bold">✕</button>
             </div>
             
             <div className="flex-1 overflow-hidden bg-white">
-              <ChatBot negocioId={negocio.id} negocioNombre={negocio.nombre} categoria={negocio.categoria} />
+              <ChatBot negocioId={negocio.id} negocioNombre={negocio.nombre} categoria={negocio.categoria} telefono={negocio.telefono} />
             </div>
           </div>
         </div>

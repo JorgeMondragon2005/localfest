@@ -57,17 +57,17 @@ export default function CatalogPlaza() {
 
           // GENERADOR IA SIMULADO DE TARJETA PERSONALIZADA
           let aiHook = "";
-          if (n.categoria === 'restaurante') aiHook = "🔥 ¡Acaban de liberar 2 mesas cerca! Pide el menú por chat.";
-          else if (n.categoria === 'hospedaje') aiHook = "🏨 Quedan algunos cuartos libres céntricos, checa disponibilidad.";
-          else if (n.categoria === 'artesanias') aiHook = "🪆 Artesanías locales más famosas a bajo costo de la zona.";
-          else if (n.categoria === 'entretenimiento') aiHook = "🎟️ Función a punto de empezar cerca de ti. ¡Aparta lugar!";
-          else aiHook = "✨ Visita recomendada de la curaduría AI Ola México.";
+          if (n.categoria === 'restaurante') aiHook = "Acaban de liberar 2 mesas cerca. Pide el menú por chat.";
+          else if (n.categoria === 'hospedaje') aiHook = "Quedan algunos cuartos libres céntricos, checa disponibilidad.";
+          else if (n.categoria === 'artesanias') aiHook = "Artesanías locales famosas a bajo costo de la zona.";
+          else if (n.categoria === 'entretenimiento') aiHook = "Función a punto de empezar cerca de ti. Aparta lugar.";
+          else aiHook = "Visita recomendada por la curaduría de LocalFest.";
 
           return { ...n, reqSpeed, aiHook };
         });
 
         // ORDENAMIENTO: Semáforos verdes (contestan rápido) siempre van primero.
-        const sorted = enriched.sort((a, b) => a.reqSpeed - b.reqSpeed);
+        const sorted = enriched.sort((a: any, b: any) => a.reqSpeed - b.reqSpeed);
         setNegocios(sorted);
         setCargando(false);
       })
@@ -84,11 +84,11 @@ export default function CatalogPlaza() {
       <div className="px-5 pt-8 pb-4 bg-[#FAF8F5]/90 backdrop-blur-md sticky top-0 z-20">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-1.5 drop-shadow-sm">
-            <span className="text-3xl font-black tracking-tighter text-[#006847]">Ola</span>
-            <span className="text-3xl font-black tracking-tighter text-[#F57814]">México</span>
+            <span className="text-3xl font-black tracking-tighter text-[#006847]">Local</span>
+            <span className="text-3xl font-black tracking-tighter text-[#F57814]">Fest</span>
           </div>
-          <button onClick={() => setGlobalChatOpen(true)} className="bg-gradient-to-r from-[#E4007C] to-[#ff1a8c] text-white px-4 py-2.5 rounded-full text-xs font-black shadow-[0_8px_20px_rgba(228,0,124,0.35)] flex items-center gap-2 hover:scale-105 active:scale-95 transition-all">
-            <span className="text-lg leading-none">✨</span> Guía AI
+          <button onClick={() => setGlobalChatOpen(true)} className="bg-gradient-to-r from-[#E4007C] to-[#ff1a8c] text-white px-4 py-2.5 rounded-full text-xs font-black shadow-[0_8px_20px_rgba(228,0,124,0.35)] flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+            Guía AI
           </button>
         </div>
 
@@ -111,7 +111,7 @@ export default function CatalogPlaza() {
       </div>
 
       {/* Feed Content - Rich Interactive Cards */}
-      <div className="px-5 pt-3 flex flex-col gap-8">
+      <div className="px-5 pt-3 flex flex-col gap-8 max-w-md mx-auto w-full">
         {cargando ? (
           <div className="text-center font-bold text-gray-400 py-10 flex flex-col items-center">
             <div className="w-10 h-10 border-4 border-[#E4007C] border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -170,7 +170,6 @@ export default function CatalogPlaza() {
                 <div className="p-5">
                   {/* Detalle AI Generado por Tipo de Negocio */}
                   <div className="flex items-start gap-3 mb-4 p-3.5 bg-blue-50/60 rounded-2xl border border-blue-100/50">
-                    <div className="text-xl mt-0.5">✨</div>
                     <div className="text-[13px] font-bold text-gray-700 leading-snug">
                       {negocio.aiHook}
                     </div>
@@ -213,7 +212,7 @@ export default function CatalogPlaza() {
             
             <div className="bg-[#E4007C] text-white p-5 flex justify-between items-center rounded-t-[32px] shadow-sm z-10">
               <div>
-                <h3 className="font-black text-xl tracking-tight">Guía Hola México</h3>
+                <h3 className="font-black text-xl tracking-tight">Guía LocalFest</h3>
                 <p className="text-xs font-bold text-white/90 uppercase tracking-widest">Recomendaciones e Inteligencia</p>
               </div>
               <button onClick={() => setGlobalChatOpen(false)} className="bg-black/20 p-2.5 rounded-full hover:bg-black/30 transition text-white">

@@ -12,9 +12,10 @@ interface ChatBotProps {
   negocioNombre?: string
   categoria?: string
   isGlobal?: boolean
+  telefono?: string
 }
 
-export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal }: ChatBotProps) {
+export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal, telefono }: ChatBotProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -29,12 +30,12 @@ export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal 
   const [lang, setLang] = useState<'ES' | 'EN'>('EN')
   
   const cat = isGlobal ? 'global' : (categoria?.toLowerCase() || 'servicios');
-  const catFilters = isGlobal ? ['🌮 ¿Dónde comer ahorita?', '🎉 ¿Eventos de noche?', '🛍️ Quiero artesanías'] :
-                     cat === 'restaurante' ? ['🌮 Opciones veganas?', '🥜 Alergias y dieta', '💳 Métodos de pago?'] :
-                     cat === 'hospedaje' ? ['🛏️ Disponibilidad hoy', '🕒 Check-in / Out?', '💳 Aceptan USD?'] :
-                     cat === 'artesanias' ? ['📦 Catálogo de productos', '💸 Mayoreo?', '✈️ Envíos internacionales?'] :
-                     cat === 'entretenimiento' ? ['🎟️ Comprar boletos', '🕒 Horarios de hoy', '📍 Ubicación exacta'] :
-                     ['📍 ¿Cómo llego?', '💳 Métodos de pago?', '🕒 Horarios de hoy?'];
+  const catFilters = isGlobal ? ['Dónde comer ahorita', 'Eventos de noche', 'Quiero artesanías'] :
+                     cat === 'restaurante' ? ['Opciones veganas', 'Alergias y dieta', 'Métodos de pago'] :
+                     cat === 'hospedaje' ? ['Disponibilidad hoy', 'Check-in y Out', 'Aceptan USD?'] :
+                     cat === 'artesanias' ? ['Catálogo de productos', 'Mayoreo?', 'Envíos internacionales'] :
+                     cat === 'entretenimiento' ? ['Comprar boletos', 'Horarios de hoy', 'Ubicación exacta'] :
+                     ['Cómo llego?', 'Métodos de pago', 'Horarios de hoy'];
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -134,7 +135,9 @@ export default function ChatBot({ negocioId, negocioNombre, categoria, isGlobal 
       console.error('WhatsApp notification API failed', err)
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `❌ Error de Twilio API: ${err.message}. (Verifica que el número sea válido en versión Trial).`
+        content: lang === 'ES' 
+          ? `El negocio no pudo recibir el mensaje (su número no está activo en Twilio). Por favor contáctalos directo al ${telefono || 'teléfono principal'} para asegurar tu lugar. ¡No pierdas tu venta!`
+          : `The business couldn't receive the message (Twilio inactive). Please contact them directly at ${telefono || 'their phone'} to secure your spot.`
       }])
       setReservacionPendiente(null)
     }
