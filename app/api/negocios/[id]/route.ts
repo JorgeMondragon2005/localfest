@@ -9,12 +9,13 @@ const corsHeaders = {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const { data, error } = await supabase
     .from('negocios')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (error) return new NextResponse(JSON.stringify({ error }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -23,14 +24,15 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const body = await req.json()
 
   const { data, error } = await supabase
     .from('negocios')
     .update(body)
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single()
 
