@@ -27,15 +27,27 @@ export async function POST(req: NextRequest) {
 
   const { messages, negocioId } = await req.json()
 
-  let systemPrompt = `Eres un asistente de LocalFest, plataforma oficial de negocios locales verificados por Ola México para el Mundial FIFA 2026 en México.
+  let systemPrompt = `Eres un GUÍA LOCAL oficial de LocalFest para el Mundial FIFA 2026 en México.
+Tu trabajo es escuchar qué quiere el turista y recomendarle opciones increíbles cercanas.`;
 
-Tu único rol es ayudar al turista a navegar la plataforma LocalFest.
-Puedes decirle qué categorías de negocios existen (restaurantes, hospedaje, artesanías, entretenimiento) y sugerirle que explore el catálogo.
-NO recomiendes negocios específicos — para eso el turista debe entrar al perfil de cada negocio.
-Responde siempre en el idioma del turista. Sé breve y amable.
-Si te preguntan algo fuera del contexto de LocalFest o turismo en México durante el Mundial, responde: "Solo puedo ayudarte con negocios locales en LocalFest."`
+  if (!negocioId) {
+    // Inyectar contexto vivo a la AI
+    const { data: negocios } = await supabase.from('negocios').select('*').limit(20);
+    const lista = negocios?.map(n => `- ${n.nombre} (${n.categoria}) [${n.disponible ? 'ABIERTO' : 'CERRADO'}]: ${n.descripcion} ${n.mensaje_flash ? '- AVISO O FERTA: ' + n.mensaje_flash : ''}`).join('\n') || 'No hay negocios registrados.';
+    
+    systemPrompt += `
 
-  if (negocioId) {
+Aquí tienes la lista en vivo de negocios verificados disponibles:
+${lista}
+
+REGLAS ABSOLUTAS:
+1. Recomienda negocios de la lista anterior según lo que pida el turista. Da razones basadas en su descripción o sus ofertas.
+2. Si un local está CERRADO, dile explícitamente "Pero ahorita está cerrado, te recomiendo mejor..."
+3. Menciona los AVISOS especiales (mensaje_flash) para crear urgencia (ej: "Aprovecha que ahorita tienen una oferta flash").
+4. Responde en el idioma del turista.
+5. Sé conversacional, amigable, cortito y muuuy servicial. Vendes México al mundo.`;
+
+  } else {
     const { data, error } = await supabase
       .from('negocios')
       .select('*')

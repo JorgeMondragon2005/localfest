@@ -4,91 +4,20 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ChatBot from "@/components/ChatBot";
 
-// ─── Tipo exacto según la API de Jorge ───────────────────────────────────────
 interface Negocio {
   id: string;
   nombre: string;
   categoria: string;
   descripcion: string;
   direccion: string;
-  lat: number;
-  lng: number;
   telefono: string;
-  whatsapp: string | null;
   metodos_pago: string | null;
   horario: string | null;
   disponible: boolean;
   calificacion: number;
   imagen_url: string | null;
-  created_at: string;
 }
 
-// ─── Colores y emojis por categoría ──────────────────────────────────────────
-const CAT_BG: Record<string, string> = {
-  restaurante:     "#E1F5EE",
-  hospedaje:       "#E6F1FB",
-  artesanias:      "#FAEEDA",
-  entretenimiento: "#EEEDFE",
-  servicios:       "#F1EFE8",
-};
-
-const CAT_EMOJI: Record<string, string> = {
-  restaurante:     "🌮",
-  hospedaje:       "🏨",
-  artesanias:      "🪆",
-  entretenimiento: "🎭",
-  servicios:       "🗺️",
-};
-
-// ─── Sub-componentes ──────────────────────────────────────────────────────────
-function Stars({ rating }: { rating: number }) {
-  const full = Math.round(rating ?? 0);
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-      <span style={{ color: "#EF9F27", fontSize: 13 }}>
-        {"★".repeat(full)}{"☆".repeat(Math.max(0, 5 - full))}
-      </span>
-      <span style={{ fontSize: 11, color: "#BA7517", fontWeight: 500 }}>
-        {(rating ?? 0).toFixed(1)}
-      </span>
-    </div>
-  );
-}
-
-function InfoPill({ children }: { children: React.ReactNode }) {
-  return (
-    <span style={{
-      fontSize: 10,
-      background: "var(--color-background-secondary)",
-      border: "0.5px solid var(--color-border-tertiary)",
-      borderRadius: 20,
-      padding: "3px 8px",
-      color: "var(--color-text-secondary)",
-    }}>
-      {children}
-    </span>
-  );
-}
-
-function Skeleton() {
-  return (
-    <div style={{ maxWidth: 480, margin: "0 auto" }}>
-      <div style={{ height: 140, background: "var(--color-background-secondary)" }} />
-      <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
-        {[70, 40, 100, 80, 60].map((w, i) => (
-          <div key={i} style={{
-            height: i === 0 ? 16 : 11,
-            width: `${w}%`,
-            background: "var(--color-background-secondary)",
-            borderRadius: 4,
-          }} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Página principal ─────────────────────────────────────────────────────────
 export default function PerfilNegocio() {
   const params  = useParams();
   const router  = useRouter();
@@ -96,281 +25,124 @@ export default function PerfilNegocio() {
 
   const [negocio,  setNegocio]  = useState<Negocio | null>(null);
   const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState<string | null>(null);
   const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    (async () => {
-      try {
-        const res = await fetch(`https://localfest.vercel.app/api/negocios/${id}`);
-        if (!res.ok) throw new Error("Negocio no encontrado");
-        const data: Negocio = await res.json();
-        setNegocio(data);
-      } catch (e: any) {
-        setError(e.message ?? "Error al cargar");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetch(`/api/negocios/${id}`)
+      .then(r => r.json())
+      .then(d => setNegocio(d))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <Skeleton />;
+  if (loading) return (
+    <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center font-bold text-gray-400">
+      <div className="w-8 h-8 border-4 border-[#006847] border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
 
-  if (error || !negocio) {
-    return (
-      <div style={{
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        minHeight: "100vh", gap: 12, padding: 24,
-      }}>
-        <p style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>
-          {error ?? "No encontrado"}
-        </p>
-        <button
-          onClick={() => router.back()}
-          style={{
-            fontSize: 13, color: "#1D9E75",
-            background: "none", border: "none", cursor: "pointer",
-          }}
-        >
-          ← Volver al catálogo
-        </button>
-      </div>
-    );
-  }
-
-  // Normaliza la categoría para buscar colores/emojis
-  const cat    = negocio.categoria?.toLowerCase() ?? "servicios";
-  const bgImg  = CAT_BG[cat]    ?? "#F1EFE8";
-  const emoji  = CAT_EMOJI[cat] ?? "📍";
+  if (!negocio) return (
+    <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-6 text-center">
+      <p className="text-gray-500 font-bold mb-4">No encontrado.</p>
+      <button onClick={() => router.back()} className="text-[#E4007C] font-bold">← Volver al catálogo</button>
+    </div>
+  );
 
   return (
-    <>
-      {/* ── Vista principal ───────────────────────────────────────────────── */}
-      <div style={{
-        maxWidth: 480, margin: "0 auto",
-        minHeight: "100vh",
-        display: "flex", flexDirection: "column",
-        background: "var(--color-background-secondary)",
-      }}>
+    <div className="bg-[#FAF8F5] min-h-screen relative pb-20 w-full max-w-lg mx-auto shadow-xl">
+      {/* Header NavBar */}
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+        <button onClick={() => router.back()} className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 font-bold hover:bg-gray-200 transition">
+           ←
+        </button>
+        <span className="flex-1 font-black text-[#2D2A26] truncate text-lg">
+          {negocio.nombre}
+        </span>
+        <span className="text-[9px] font-black tracking-widest uppercase bg-[#006847] text-white px-2 py-1 rounded-sm shadow-sm">
+          Verif. Ola
+        </span>
+      </div>
 
-        {/* Barra de navegación */}
-        <div style={{
-          position: "sticky", top: 0, zIndex: 10,
-          background: "var(--color-background-primary)",
-          borderBottom: "0.5px solid var(--color-border-tertiary)",
-          padding: "10px 14px",
-          display: "flex", alignItems: "center", gap: 10,
-        }}>
-          <button
-            onClick={() => router.back()}
-            style={{
-              width: 30, height: 30, borderRadius: "50%",
-              background: "none", border: "none",
-              cursor: "pointer", fontSize: 16,
-              color: "var(--color-text-primary)",
-            }}
-          >
-            ←
-          </button>
-          <span style={{
-            fontSize: 13, fontWeight: 500,
-            color: "var(--color-text-primary)", flex: 1,
-          }}>
-            {negocio.nombre}
-          </span>
-          <span style={{
-            fontSize: 9, background: "#006847", color: "#E1F5EE",
-            padding: "2px 7px", borderRadius: 99, fontWeight: 700,
-          }}>
-            Verif. Ola México
-          </span>
-        </div>
-
-        {/* Foto / Banner */}
-        <div style={{
-          height: 140, background: bgImg,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 52, position: "relative",
-        }}>
-          {negocio.imagen_url
-            ? <img
-                src={negocio.imagen_url}
-                alt={negocio.nombre}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            : emoji
-          }
-          {/* Badge disponibilidad */}
-          <span style={{
-            position: "absolute", bottom: 10, left: 12,
-            fontSize: 10, fontWeight: 500,
-            padding: "3px 8px", borderRadius: 99,
-            background: negocio.disponible ? "#E1F5EE" : "#FCEBEB",
-            color:      negocio.disponible ? "#085041" : "#A32D2D",
-          }}>
-            {negocio.disponible ? "● Disponible ahora" : "● Cerrado"}
-          </span>
-        </div>
-
-        {/* Cuerpo del perfil */}
-        <div style={{
-          flex: 1, padding: 14,
-          display: "flex", flexDirection: "column", gap: 14,
-          background: "var(--color-background-primary)",
-        }}>
-
-          {/* Nombre + categoría */}
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 500, color: "var(--color-text-primary)" }}>
-              {negocio.nombre}
-            </div>
-            <div style={{ fontSize: 11, color: "#006847", fontWeight: "bold", marginTop: 3 }}>
-              {negocio.categoria} · Verificado por Ola México
-            </div>
-          </div>
-
-          {/* Calificación */}
-          <Stars rating={negocio.calificacion} />
-
-          {/* Descripción */}
-          {negocio.descripcion && (
-            <p style={{
-              fontSize: 12, lineHeight: 1.6,
-              color: "var(--color-text-secondary)",
-            }}>
-              {negocio.descripcion}
-            </p>
-          )}
-
-          {/* Pills de info — solo muestra si tiene dato */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {negocio.horario      && <InfoPill>🕐 {negocio.horario}</InfoPill>}
-            {negocio.metodos_pago && <InfoPill>💳 {negocio.metodos_pago}</InfoPill>}
-            {negocio.telefono     && <InfoPill>📞 {negocio.telefono}</InfoPill>}
-            {negocio.direccion    && <InfoPill>📍 {negocio.direccion}</InfoPill>}
-            <InfoPill>Español · English</InfoPill>
-          </div>
-
-          {/* Divider */}
-          <div style={{ height: "0.5px", background: "var(--color-border-tertiary)" }} />
-
-          {/* Disponibilidad */}
-          <div style={{
-            background: "var(--color-background-secondary)",
-            borderRadius: "var(--border-radius-md)",
-            padding: "10px 12px",
-            border: "0.5px solid var(--color-border-tertiary)",
-          }}>
-            <p style={{
-              fontSize: 10, fontWeight: 500,
-              color: "var(--color-text-secondary)", marginBottom: 4,
-            }}>
-              Disponibilidad actual
-            </p>
-            <p style={{ fontSize: 13, color: "var(--color-text-primary)" }}>
-              {negocio.disponible ? "Abierto y disponible" : "Cerrado por el momento"}
-            </p>
-          </div>
-
-          {/* Botón principal */}
-          <button
-            onClick={() => setShowChat(true)}
-            style={{
-              width: "100%", padding: "14px 0",
-              background: "linear-gradient(135deg, #006847, #0a875e)", color: "#FFFFFF",
-              border: "none", borderRadius: "24px",
-              fontSize: 14, fontWeight: "bold", cursor: "pointer",
-              boxShadow: "0 8px 20px -5px rgba(0, 104, 71, 0.4)"
-            }}
-          >
-            Reservar o preguntar al asistente
-          </button>
-
-          {/* Llamar directamente */}
-          {negocio.telefono && (
-            <a
-              href={`tel:${negocio.telefono}`}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center",
-                padding: "9px 0",
-                border: "0.5px solid var(--color-border-secondary)",
-                borderRadius: "var(--border-radius-md)",
-                fontSize: 13, color: "var(--color-text-primary)",
-                textDecoration: "none",
-              }}
-            >
-              Llamar directamente
-            </a>
-          )}
+      {/* Banner / Foto */}
+      <div className="h-[220px] bg-[#F57814]/10 relative flex items-center justify-center text-7xl select-none">
+        {negocio.imagen_url ? (
+          <img src={negocio.imagen_url} alt={negocio.nombre} className="w-full h-full object-cover" />
+        ) : (
+          negocio.categoria === 'restaurante' ? '🌮' : 
+          negocio.categoria === 'hospedaje' ? '🏨' : 
+          negocio.categoria === 'artesanias' ? '🪆' : '🎪'
+        )}
+        
+        {/* Availability Badge */}
+        <div className={`absolute -bottom-4 right-6 px-5 py-2 rounded-xl font-black text-xs uppercase shadow-lg border-2 border-white flex items-center gap-2 ${
+          negocio.disponible ? 'bg-[#006847] text-white' : 'bg-[#CE1126] text-white'
+        }`}>
+          <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+          {negocio.disponible ? "Abierto Ahora" : "Cerrado"}
         </div>
       </div>
 
-      {/* ── Chatbot (bottom sheet) ────────────────────────────────────────── */}
+      <div className="px-6 pt-10 pb-6 bg-[#FAF8F5]">
+        <h1 className="text-[28px] font-black text-[#2D2A26] leading-tight mb-1">{negocio.nombre}</h1>
+        <p className="text-[#006847] font-extrabold text-[11px] uppercase tracking-widest mb-3">{negocio.categoria}</p>
+        
+        <div className="flex items-center gap-1.5 mb-6 text-[#F57814] font-black text-sm bg-[#F57814]/10 inline-flex px-2.5 py-1 rounded-lg">
+          ★ {negocio.calificacion?.toFixed(1) || "5.0"}
+        </div>
+
+        {negocio.descripcion && (
+          <p className="text-gray-700 font-semibold leading-relaxed mb-8 text-sm">
+            {negocio.descripcion}
+          </p>
+        )}
+
+        {/* Info Pills */}
+        <div className="flex flex-wrap gap-2.5 mb-8">
+          {negocio.horario && <span className="bg-white px-3 py-2 rounded-xl border-2 border-gray-100 shadow-sm text-xs font-bold text-gray-700 flex items-center gap-1.5"><span className="text-lg">🕐</span> {negocio.horario}</span>}
+          {negocio.metodos_pago && <span className="bg-white px-3 py-2 rounded-xl border-2 border-gray-100 shadow-sm text-xs font-bold text-gray-700 flex items-center gap-1.5"><span className="text-lg">💳</span> {negocio.metodos_pago}</span>}
+          {negocio.direccion && <span className="bg-white px-3 py-2 rounded-xl border-2 border-gray-100 shadow-sm text-xs font-bold text-gray-700 flex items-center gap-1.5"><span className="text-lg">📍</span> {negocio.direccion}</span>}
+        </div>
+
+        {/* Action Button CTA */}
+        <button
+          onClick={() => setShowChat(true)}
+          className="w-full py-4 bg-gradient-to-r from-[#E4007C] to-[#ff2a9d] text-white font-black rounded-3xl shadow-[0_8px_25px_rgba(228,0,124,0.35)] hover:shadow-[0_4px_15px_rgba(228,0,124,0.4)] active:scale-95 transition-all text-[15px] flex items-center justify-center gap-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          Consultar al asistente IA
+        </button>
+
+        {negocio.telefono && (
+          <a
+            href={`tel:${negocio.telefono}`}
+            className="mt-4 flex items-center justify-center w-full py-3 bg-white text-gray-600 font-extrabold rounded-full shadow-sm border-[1.5px] border-gray-200 hover:bg-gray-50 transition-colors text-sm"
+          >
+            Llamar al {negocio.telefono}
+          </a>
+        )}
+      </div>
+
+      {/* Chat Bot Overlay */}
       {showChat && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 50,
-          display: "flex", flexDirection: "column", justifyContent: "flex-end",
-        }}>
-          <div
-            style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)" }}
-            onClick={() => setShowChat(false)}
-          />
-          <div style={{
-            position: "relative",
-            background: "var(--color-background-primary)",
-            borderRadius: "20px 20px 0 0",
-            height: "85vh", maxWidth: 480, width: "100%", margin: "0 auto",
-            display: "flex", flexDirection: "column", overflow: "hidden",
-          }}>
-            {/* Handle */}
-            <div style={{ display: "flex", justifyContent: "center", padding: "10px 0 4px" }}>
-              <div style={{
-                width: 36, height: 4, borderRadius: 99,
-                background: "var(--color-border-secondary)",
-              }} />
-            </div>
-            {/* Header del chat */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "8px 14px 10px",
-              borderBottom: "0.5px solid var(--color-border-tertiary)",
-            }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: "50%",
-                background: bgImg,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 16,
-              }}>
-                {emoji}
+        <div className="fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setShowChat(false)} />
+          <div className="relative bg-[#FAF8F5] rounded-t-[32px] h-[85vh] w-full max-w-lg mx-auto flex flex-col overflow-hidden shadow-2xl">
+            {/* Cabecera modal chatbot */}
+            <div className="bg-[#006847] text-white p-5 flex justify-between items-center rounded-t-[32px] shadow-sm z-10">
+              <div>
+                <h3 className="font-black text-xl tracking-tight leading-none mb-0.5">{negocio.nombre}</h3>
+                <p className="text-[10px] font-black text-[#E1F5EE] uppercase tracking-widest">Asistente Local</p>
               </div>
-              <div style={{ flex: 1 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)" }}>
-                  {negocio.nombre}
-                </p>
-                <p style={{ fontSize: 11, color: "#1D9E75" }}>
-                  Asistente LocalFest · en línea
-                </p>
-              </div>
-              <button
-                onClick={() => setShowChat(false)}
-                style={{
-                  background: "none", border: "none",
-                  cursor: "pointer", fontSize: 16,
-                  color: "var(--color-text-secondary)", padding: 4,
-                }}
-              >
-                ✕
-              </button>
+              <button onClick={() => setShowChat(false)} className="bg-black/20 w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/30 transition text-white font-bold">✕</button>
             </div>
-            {/* Chatbot */}
-            <div style={{ flex: 1, overflow: "hidden" }}>
+            
+            <div className="flex-1 overflow-hidden bg-white">
               <ChatBot negocioId={negocio.id} negocioNombre={negocio.nombre} categoria={negocio.categoria} />
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

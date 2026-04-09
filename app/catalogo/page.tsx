@@ -115,13 +115,18 @@ export default function CatalogPlaza() {
           negociosFiltrados.map((negocio) => {
             let semaforoClass = "semaforo-rojo";
             let statusText = "CERRADO O LLENO";
+            let actionText = "No disponible o muy lleno. ¡Te avisarán!";
             
             if (negocio.mensaje_flash) {
               semaforoClass = "semaforo-amarillo";
               statusText = "AVISO LOCAL";
+              actionText = `"${negocio.mensaje_flash}"`;
             } else if (negocio.disponible) {
               semaforoClass = "semaforo-verde";
-              statusText = "ABIERTO";
+              if (negocio.categoria === 'restaurante') { statusText = "MESAS LIBRES"; actionText = "Aún hay mesas disponibles, puedes ir ahora mismo."; }
+              else if (negocio.categoria === 'hospedaje') { statusText = "HABITACIONES LISTAS"; actionText = "Hay habitaciones listas para ti."; }
+              else if (negocio.categoria === 'artesanias') { statusText = "STOCK DISPONIBLE"; actionText = "Excelente stock de piezas y productos locales."; }
+              else { statusText = "ABIERTO"; actionText = "Lugar ideal para visitar ahora mismo."; }
             }
 
             const randomDist = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
@@ -163,13 +168,7 @@ export default function CatalogPlaza() {
                       </span>
                     </div>
                     <div className="text-sm font-semibold text-gray-800 leading-snug">
-                      {negocio.mensaje_flash ? (
-                        <span>"{negocio.mensaje_flash}"</span>
-                      ) : negocio.disponible ? (
-                        "Lugar ideal para visitar ahora mismo. Tienen espacio."
-                      ) : (
-                        "No disponible o muy lleno. ¡Te avisarán!"
-                      )}
+                      {actionText}
                     </div>
                   </div>
                 </div>
